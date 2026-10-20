@@ -317,20 +317,54 @@ if len(produits) > 0:
 else:
     print("Il n'existe pas de producteurs qui proposent plus de 3 produits.")
 
+
+
 #5 Calculez la valeur totale du stock (quantité en stock multipliée 
     # par le prix unitaire) pour chaque produit.
-cursor.execute("SELECT nom, stock, prix_unitaire, (stock * prix_unitaire) AS valeur_stock FROM produit;")
+cursor.execute("SELECT nom,  (stock * prix_unitaire) AS valeur_stock FROM produit;")
 
     # Récupération des résultats
 produits = cursor.fetchall()
 
 print("\n--- VALEUR TOTALE DU STOCK POUR CHAQUE PRODUIT ---")
 
+for r in produits:
+    print(f"Nom Produits : {r[0]} (Valeur Total : {r[1]} Euros)")
 
 
 
 
+#------------------------Partie 3 : Les Jointures et Relations------------------------------
+#1) Jointure simple : Affichez la liste de tous les produits avec le nom du producteur associé 
+    #(Nom du produit, Prix, Nom du producteur, Ville du producteur)
     
+ 
+
+
+
+
+
+# Requete de selection  :
+cursor.execute("""
+    SELECT p.nom, p.prix_unitaire, pr.nom, pr.ville 
+    FROM produit p 
+    JOIN producteur pr ON p.producteur_id = pr.id;
+""")
+
+# Récupération des résultats
+produits_producteurs = cursor.fetchall()
+
+print("--- LISTE DES PRODUITS ET LEURS PRODUCTEURS ---")
+for r in produits_producteurs:
+    # r[0] = nom produit, r[1] = prix, r[2] = nom producteur, r[3] = ville
+    print(f"Produit : {r[0]} ({r[1]}€) | Fait par : {r[2]} à {r[3]}")
+
+
+
+
+
+
+
     # 4. Fermeture de la connexion
 db.close()
 
