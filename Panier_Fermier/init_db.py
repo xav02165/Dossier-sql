@@ -338,31 +338,64 @@ for r in produits:
 #1) Jointure simple : Affichez la liste de tous les produits avec le nom du producteur associé 
     #(Nom du produit, Prix, Nom du producteur, Ville du producteur)
     
- 
-
-
-
-
 
 # Requete de selection  :
 cursor.execute("""
     SELECT p.nom, p.prix_unitaire, pr.nom, pr.ville 
-    FROM produit p 
-    JOIN producteur pr ON p.producteur_id = pr.id;
+    FROM produit AS p 
+    JOIN producteur AS pr ON p.producteur_id = pr.id;
 """)
 
 # Récupération des résultats
 produits_producteurs = cursor.fetchall()
 
-print("--- LISTE DES PRODUITS ET LEURS PRODUCTEURS ---")
+print("\n--- LISTE DES PRODUITS ET LEURS PRODUCTEURS ---")
 for r in produits_producteurs:
     # r[0] = nom produit, r[1] = prix, r[2] = nom producteur, r[3] = ville
     print(f"Produit : {r[0]} ({r[1]}€) | Fait par : {r[2]} à {r[3]}")
 
+#2 Commandes clients : Affichez les détails des commandes (ID de commande, date, statut) avec le
+# avec le nom et l'email du client correspondant.
+
+# Requete de selection : 
+
+cursor.execute("""SELECT cde.id, cde.date_commande, cde.statut, clt.nom, clt.email
+                FROM commande AS cde
+                JOIN client AS clt ON cde.client_id = clt.id;
+                """)
+
+ # Récupération des résultats
+produits = cursor.fetchall()
+
+print("\n---DETAILS DES COMMANDES---")
+for r in produits:
+    # r[0] = nom produit, r[1] = prix, r[2] = nom producteur, r[3] = ville
+    print(f"Commande : {r[0]} Date : ({r[1]})  Statut : {r[2]}  Nom :{r[3]} Email :{r[4]}")
 
 
 
+#3) Jointure multi-tables (Le ticket de caisse) : Pour la commande dont l'ID est 1, affichez la liste
+# des produits commandés, leur quantité, leur prix unitaire et le montant total pour chaque ligne
 
+cursor.execute("""
+SELECT 
+    p.nom AS nom_produit,                                -- Le nom du produit
+    lc.quantite AS quantite,                             -- La quantité achetée
+    p.prix_unitaire AS prix_unitaire,                    -- Le prix d'un article
+    (lc.quantite * p.prix_unitaire) AS montant_total     -- Calcul  : quantité x prix unitaire
+FROM commande AS c
+JOIN ligne_commande AS lc ON c.id = lc.commande_id       -- On relie la commande à ses lignes
+JOIN produit AS p ON lc.produit_id = p.id                -- On récupère les infos du produit de chaque ligne
+WHERE c.id = 1;                                          -- On filtre uniquement pour la commande numéro 1
+""")
+
+# Récupération des résultats
+produits = cursor.fetchall()
+
+print("\n---TICKET DE CAISSE---")
+for r in produits:
+
+    print(f"Produit : {r[0]} Quantité : {r[1]} Prix unitaire : {r[2]} Total : {r[3]}")
 
 
     # 4. Fermeture de la connexion
