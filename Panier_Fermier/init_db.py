@@ -397,6 +397,28 @@ for r in produits:
 
     print(f"Produit : {r[0]} Quantité : {r[1]} Prix unitaire : {r[2]} Total : {r[3]}")
 
+#4) Clients sans commande (LEFT JOIN) : Identifiez les clients qui n'ont jamais passé de commande à
+# ce jour.
+
+# Requete de selection :
+cursor.execute("""
+SELECT
+    clt.id AS client_id,
+    clt.nom AS nom_client,
+    clt.email AS email_client
+FROM client AS clt
+LEFT JOIN commande AS cde ON clt.id = cde.client_id
+WHERE cde.id IS NULL;
+""")
+
+# Récupération des résultats
+produits = cursor.fetchall()
+
+print("\n---CLIENTS SANS COMMANDE---")
+
+for r in produits:
+    print(f"ID Client : {r[0]} Nom : {r[1]} Email : {r[2]} ")
+
 
     # 4. Fermeture de la connexion
 db.close()
