@@ -1,4 +1,4 @@
-# Pannier Fermier
+# Panier Fermier
 
 Contexte du projet : "Le Panier Fermier" 
 
