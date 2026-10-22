@@ -467,6 +467,52 @@ print("Les prix de la Ferme des Lilas ont bien été augmentés de 5% !")
 # c. Mettez à jour (décrémentez) le stock du produit concerné. 
 # (Si le stock devient négatif, la transaction doit être annulée avec ROLLBACK).
 
+# Requete de selection:
+try:
+    cursor.execute("BEGIN TRANSACTION;") #demarrage en evitant la modif de la bdd au fur et a mesure
+
+# On récupère mon ID dans la table client 
+    cursor.execute("SELECT id FROM client WHERE nom = 'Durieux xavier';")
+    client_res = cursor.fetchone()
+    client_id = client_res[0]
+
+ # On récupère l'ID unique de la commande qui vient d'être généré
+    commande_id = cursor.lastrowid #utilise lastrowid pour aller chercher le dernier ID client généré
+
+# Insére la ligne de commande (exemple: commande de 2 unitées)
+    produit_id = 1
+    quantite_commandee = 2
+    
+    cursor.execute("""
+        INSERT INTO ligne_commande (commande_id, produit_id, quantite) 
+        VALUES (?, ?, ?);
+    """, (commande_id, produit_id, quantite_commandee)) 
+
+# Validation
+    db.commit()
+    print("\n---GESTION DES STOCKS---")
+    print(f"Félicitations Xavier ! Ta commande (ID {commande_id}) a bien été enregistrée et le stock a été mis à jour.")
+
+except sqlite3.Error as e:
+    # Gestion des erreurs
+    db.rollback()
+    print(f"Oups ! Erreur détectée, la transaction a été annulée (ROLLBACK) : {e}")
+
+
+
+#-------------------------Partie 5 : Requêtes Complexes et Analyses Avancées ----------------------------
+#1) Sous-requête : Affichez-le ou les produits qui ont le prix unitaire le plus élevé de toute la base.
+
+
+
+
+
+
+
+
+
+
+
 
 
 
