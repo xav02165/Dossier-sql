@@ -503,13 +503,113 @@ except sqlite3.Error as e:
 #-------------------------Partie 5 : Requêtes Complexes et Analyses Avancées ----------------------------
 #1) Sous-requête : Affichez-le ou les produits qui ont le prix unitaire le plus élevé de toute la base.
 
+# Requete de selection:
+cursor.execute("""
+    SELECT p.nom, p.prix_unitaire 
+    FROM produit AS p 
+    WHERE p.prix_unitaire = (SELECT MAX(prix_unitaire) FROM produit);
+""")
+
+# Récupérer tous les résultats (au cas où il y aurait des doublons)
+resultats = cursor.fetchall()
+
+print("\n--- PRODUIT(S) LE(S) PLUS CHER(S) ---")
+for r in resultats:
+    print(f"- {r[0]} au prix de {r[1]} €")
+
+
+#2) Analyse avec WITH (CTE) : 
+#a. Créez une CTE calculant le chiffre d'affaires total généré par chaque client (Somme de 
+#quantite * prix_unitaire pour ses commandes livrées). 
+#b. Utilisez cette CTE pour afficher uniquement les clients dont le total des achats dépasse 100 
+#euros. 
+
+
+ #1. On crée une table temporaire (CTE) nommée ChiffreAffairesClients
+
+    cursor.execute("""
+    WITH ChiffreAffairesClients AS (
+        SELECT 
+            clt.id AS client_id,
+            clt.nom AS client_nom,
+            SUM(lc.quantite * p.prix_unitaire) AS total_achats
+        FROM client AS clt
+        JOIN commande AS cde ON clt.id = cde.client_id
+        JOIN ligne_commande AS lc ON cde.id = lc.commande_id
+        JOIN produit AS p ON lc.produit_id = p.id
+        WHERE cde.statut = 'Livrée'
+        GROUP BY clt.id, clt.nom
+    )
+    SELECT client_nom, total_achats 
+    FROM ChiffreAffairesClients 
+    WHERE total_achats > 100;
+""")
+
+# Récupérer et afficher les résultats
+resultats = cursor.fetchall()
+print("\n--- CLIENTS AVEC + DE 100€ D'ACHATS ---")
+for r in resultats:
+    print(f"- {r[0]} : {r[1]} €")
+
+
+#3) Cas conditionnels (CASE WHEN) : Affichez la liste des produits avec leur nom, leur prix, et une 
+# colonne textuelle "Gamme" qui indique : 
+# a. "Économique" si le prix est $< 3\text{€}$ 
+# b. "Standard" si le prix est entre $3\text{€}$ et $10\text{€}$ 
+# c. "Premium" si le prix est $> 10\text{€}$ 
 
 
 
 
 
+cursor.execute("""
+    SELECT 
+        nom,
+        ROUND(prix_unitaire, 2),
+        CASE 
+            WHEN prix_unitaire < 3 THEN 'Économique'
+            WHEN prix_unitaire BETWEEN 3 AND 10 THEN 'Standard'
+            ELSE 'Premium'
+        END 
+    FROM produit;
+""")
+
+produits_gamme = cursor.fetchall()
+
+print("\n--- CLASSEMENT DES PRODUITS PAR GAMME ---")
+for p in produits_gamme:
+    # Le ':.2f' force l'affichage à 2 décimales (ex: 2.50 €)
+    print(f"- {p[0]} ({p[1]:.2f} €) -> Gamme : {p[2]}")
+
+#--------------------------Partie 6 : Performance et Indexation-------------------------------
+#Objectif : Comprendre l'impact des index sur les performances de recherche. 
+
+#1) Analyse de requête : Utilisez la commande EXPLAIN QUERY PLAN devant une requête de 
+# recherche de client par son email. Observez le plan d'exécution. 
+#2) Création d'index : Créez un index sur la colonne email de la table client. 
+#3) Vérification : Relancez le EXPLAIN QUERY PLAN et observez la différence (passage d'un parcours 
+# de table complet à une recherche par index).
+
+# 1. Observation SANS index 
+cursor.execute("EXPLAIN QUERY PLAN SELECT * FROM client WHERE email = 'xav.dx02@gmail.com';")
+print("\n--- Plan SANS index ---")
+for row in cursor.fetchall():
+    print(row)
+    
 
 
+# 2. Création de l'index sur la colonne email de la table client
+cursor.execute("CREATE INDEX IF NOT EXISTS idx_client_email ON client(email);")
+db.commit()
+print("\n[+] Index 'idx_client_email' créé avec succès !")
+
+
+# 3. Observation AVEC index 
+cursor.execute("EXPLAIN QUERY PLAN SELECT * FROM client WHERE email = 'xav.dx02@gmail.com';")
+print("\n--- Plan AVEC index ---")
+for row in cursor.fetchall():
+    print(row)
+    
 
 
 
