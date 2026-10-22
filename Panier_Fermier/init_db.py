@@ -419,6 +419,56 @@ print("\n---CLIENTS SANS COMMANDE---")
 for r in produits:
     print(f"ID Client : {r[0]} Nom : {r[1]} Email : {r[2]} ")
 
+#-------------------Partie 4 : Modifications, Contraintes et Transactions ------------------------------
+#1) Insertion : Ajoutez un nouveau client de votre choix dans la base de données.
+
+# Requete de selection :
+cursor.execute("""
+                INSERT INTO client (nom, email, ville, date_inscription) 
+VALUES ('Durieux xavier', 'xav.dx02@gmail.com', 'Saint-Quentin', '2026-10-22'); """);
+
+#Validation 
+db.commit()
+
+# On demande à SQLite de nous redonner le dernier client inséré
+cursor.execute("SELECT nom FROM client ORDER BY id DESC LIMIT 1;")
+
+nouveau_client = cursor.fetchone() # Récupère la première ligne du résultat
+
+print("\n--- NOUVEAU CLIENT ---")
+print(f"Le nouveau client {nouveau_client[0]} a bien été enregistré !")
+
+
+#2) Mise à jour : Suite à une inflation, augmentez de 5% le prix de tous les produits du producteur 
+#"Ferme des Lilas". 
+
+# Requete de selection :
+cursor.execute("""
+    UPDATE produit 
+    SET prix_unitaire = prix_unitaire * 1.05
+    WHERE producteur_id IN (
+        SELECT id 
+        FROM producteur 
+        WHERE nom = 'Ferme des Lilas'
+    );
+""")
+
+# Validation
+
+db.commit()
+print("\n---MODIFICATION DES TARIFS---")
+print("Les prix de la Ferme des Lilas ont bien été augmentés de 5% !")
+
+
+#3) Gestion des stocks (Transaction) : Un client passe une commande. 
+# Simulez cette opération dans une transaction (BEGIN TRANSACTION, COMMIT) : 
+# a. Insérez une nouvelle commande pour ce client. 
+# b. Insérez la ligne de commande associée. 
+# c. Mettez à jour (décrémentez) le stock du produit concerné. 
+# (Si le stock devient négatif, la transaction doit être annulée avec ROLLBACK).
+
+
+
 
     # 4. Fermeture de la connexion
 db.close()
